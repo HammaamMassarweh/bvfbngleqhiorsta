@@ -8,10 +8,11 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 int main(int argc, char** argv) {
 
-	if (!argc != 1 && argc != 5 && argc != 9) {
+	if (!argc != 1 && argc != 5 && argc != 9) {  //todo ask if less or more parameters can be passed
 		printf("Invalid input");
 		return 0;
 	}
@@ -44,8 +45,29 @@ int main(int argc, char** argv) {
 	}
 
 	// print parameters
-	printf("max = %d\nduration = %d\nramp = %f\ntear = %f\n",max,duration,ramp,tear);
+	printf("=> Starting test with:\nmax = %d\nduration = %d\nramp = %f\ntear = %f\n",max,duration,ramp,tear);
 
+	unsigned long mytime = (unsigned long)time(NULL);	//todo check if timestamp is accurate
+
+//	printf("my size:%d\n",sizeof(mytime));
+
+	char filename[sizeof(mytime)];				//todo check if size is good that way
+
+	sprintf(filename, "output_%lu.log", mytime);
+
+//	printf("%lu\n", mytime);
+//	printf("TS:=%s\n",filename);
+
+	FILE* output = fopen(filename,"a");
+	printf("=> %s log file is now opened\n",filename);
+
+	if(!output){
+		printf("# Files problem was discovered\n");
+		return 0;
+	}
+	if(!fclose(output)){
+		printf("=> %s is now closed\n",filename);
+	}
 
 	return 0;
 }
