@@ -58,21 +58,24 @@ int main(int argc, char** argv) {
 
 	time_t begin;
 	time(&begin);
+
+	//specifies the log file name and creats it
 	unsigned long mytime = (unsigned long) begin; //todo check if timestamp is accurate
-	char filename[100];		//todo check if size is good that way
+	char filename[sizeof(mytime)+strlen("output_.log")+1];		//todo check if size is good that way
 	sprintf(filename, "output_%lu.log", mytime);
 	FILE* output = fopen(filename, "a");
 	printf("=> %s log file is now opened\n", filename);
 
 	double upacc = max / ramp;
 	double downacc = max / tear;
-	//todo check if can't reach maximum
 
+	//this function works for a duration amount of minutes
 	int passedTime = 0;
 	while (passedTime < duration) {
 		clock_t launch = clock();
 
 		passedTime++;
+		//here we calculate the number of events we can execute in this certain minute
 		int toPrintEvents;
 		int rampEvents = (int) (passedTime * upacc);
 		int tearEvents = (int) ((duration - passedTime) * downacc);
@@ -87,35 +90,25 @@ int main(int argc, char** argv) {
 				;
 			}
 		}
-//		char eventsPerMinute[100];
-//		sprintf(eventsPerMinute, "----------%d----------\n", toPrintEvents);
-//		fputs(eventsPerMinute, output);
+
 		printf("-->minute %d running another %d events\n",passedTime,toPrintEvents);
 		for (int j = 0; j < toPrintEvents; j++) {
-//			fputs("anaaaa\n", output);
-//		}
-//		for (int i = 0; i < toPrintEvents; i++) {
+			//get the time and convert it to "struct tm" so we can extract time data.
 			time_t shemde;
 			time(&shemde);
 			struct tm timeStruct;
 			timeStruct = *(localtime(&shemde));
 
-//			printf("ana hamaaaaaaam---%d",timeStruct.tm_hour);
-//			struct tm *timeStruct;
-//			time(&currentTime);
-//			timeStruct = localtime(&shemde);
+			//puts the log string into the log file (only dateTime meanwhile).
 			char printNow[120];
-//			sprintf(printNow,"%d%d%dT%d%d%dZ\n",timeStruct.tm_year,timeStruct.tm_mon,timeStruct.tm_mday,timeStruct.tm_hour,timeStruct.tm_min,timeStruct.tm_sec);
-//			int x=12,y=17;
-//			snprintf(printNow,120,"%d-%d-%dT%d:%d:%dZ\n",2016,06,21,8,5,12);
 			snprintf(printNow, 120, "%d-%d-%dT%d:%d:%dZ\n",
 					(timeStruct.tm_year) + 1900, timeStruct.tm_mon,
 					timeStruct.tm_mday, timeStruct.tm_hour, timeStruct.tm_min,
 					timeStruct.tm_sec);
-//			sprintf(printNow, "%d-%d-%dT%d:%d:%dZ\n", (timeStruct.tm_year)+1900,timeStruct.tm_mon,timeStruct.tm_mday,timeStruct.tm_hour,timeStruct.tm_min,timeStruct.tm_sec);
 			fputs(printNow, output);
 		}
 
+		/// let the process sleep for the rest of the minute.
 		clock_t done = clock();
 		double diff = (done - launch) / CLOCKS_PER_SEC;
 		if(SECONDS_IN_MIN-(int)diff > 0){
