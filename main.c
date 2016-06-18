@@ -14,6 +14,11 @@
 
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y));
 #define SECONDS_IN_MIN 60
+#define STRING_LENGTH 128
+#define NUM_OF_CHARS 136
+#define CHARS_START '!'
+#define MAX_TIMESTAMP_LENGTH 22
+//#define NUM_OF_LETTERS 52
 
 int main(int argc, char** argv) {
 
@@ -52,16 +57,14 @@ int main(int argc, char** argv) {
 	}
 
 	// print parameters
-	printf(
-			"=> Starting test with: max = %d duration = %d ramp = %f tear = %f\n",
-			max, duration, ramp, tear);
+	printf("=> Starting test...\n");
 
 	time_t begin;
 	time(&begin);
 
 	//specifies the log file name and creats it
-	unsigned long mytime = (unsigned long) begin; //todo check if timestamp is accurate
-	char filename[sizeof(mytime)+strlen("output_.log")+1];		//todo check if size is good that way
+	unsigned long mytime = (unsigned long) begin;
+	char filename[sizeof(mytime) + strlen("output_.log") + 1];
 	sprintf(filename, "output_%lu.log", mytime);
 	FILE* output = fopen(filename, "a");
 	printf("=> %s log file is now opened\n", filename);
@@ -91,7 +94,8 @@ int main(int argc, char** argv) {
 			}
 		}
 
-		printf("-->minute %d running another %d events\n",passedTime,toPrintEvents);
+		printf("--> minute %d running another %d events\n", passedTime,
+				toPrintEvents);
 		for (int j = 0; j < toPrintEvents; j++) {
 			//get the time and convert it to "struct tm" so we can extract time data.
 			time_t shemde;
@@ -99,20 +103,51 @@ int main(int argc, char** argv) {
 			struct tm timeStruct;
 			timeStruct = *(localtime(&shemde));
 
+			// generates a random LOG LEVEL
+			int randLogLevel = rand() % 3;
+			char* logLevel;
+			switch (randLogLevel) {
+			case 0:
+				logLevel = "INFO";
+				break;
+			case 1:
+				logLevel = "DEBUG";
+				break;
+			case 2:
+				logLevel = "ERROR";
+				break;
+			default:
+				break;
+			}
+
+			// generates a string of random 128 ASCII chars
+			char randString[STRING_LENGTH];
+			for (int i = 0; i < STRING_LENGTH; i++) {
+				int randChar = rand() % NUM_OF_CHARS;
+				randString[i] = randChar + CHARS_START;
+//				int randChar = rand() % NUM_OF_LETTERS;
+//				randString[i]=letters[randChar];
+			}
+
 			//puts the log string into the log file (only dateTime meanwhile).
-			char printNow[120];
-			snprintf(printNow, 120, "%d-%d-%dT%d:%d:%dZ\n",
-					(timeStruct.tm_year) + 1900, timeStruct.tm_mon,
+			char printNow[MAX_TIMESTAMP_LENGTH];
+			snprintf(printNow, MAX_TIMESTAMP_LENGTH, "%d-%d-%dT%d:%d:%dZ",
+					(timeStruct.tm_year) + 1900, timeStruct.tm_mon + 1,
 					timeStruct.tm_mday, timeStruct.tm_hour, timeStruct.tm_min,
 					timeStruct.tm_sec);
-			fputs(printNow, output);
+			int lineLen = MAX_TIMESTAMP_LENGTH + strlen(randString)
+					+ strlen(logLevel) + 1 + 1 + 1 + 1;
+			char printLogLine[lineLen];
+			snprintf(printLogLine, lineLen, "%s %s %s\n", printNow, logLevel,
+					randString);
+			fputs(printLogLine, output);
 		}
 
 		/// let the process sleep for the rest of the minute.
 		clock_t done = clock();
 		double diff = (done - launch) / CLOCKS_PER_SEC;
-		if(SECONDS_IN_MIN-(int)diff > 0){
-			sleep(SECONDS_IN_MIN-(int)diff);
+		if (SECONDS_IN_MIN - (int) diff > 0) {
+			sleep(SECONDS_IN_MIN - (int) diff);
 		}
 	}
 
